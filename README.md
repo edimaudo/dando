@@ -1,11 +1,10 @@
 # dando
 A multi-step agent donation intelligence tool
 
-## Features
-
-- **Campaign Simulator (Agentic Forecasting):** Uses Elastic aggregations to simulate ROI for potential outreach based on historical gift patterns.
+## Agentic Features
+- **Campaign Simulator (Agentic Forecasting):** Uses Elastic aggregations to simulate ROI for potential outreach.
 - **Personalized Action Drafter:** A multi-step workflow that retrieves constituent profiles, CRM history to generate hyper-personalized outreach.
-- **Customer Segmentation:** Leverages **ES|QL** and Runtime Fields for real-time engagement scoring across disconnected datasets.
+- **Customer Segmentation:** Leverages **ES|QL** to answer personalized donation segment questions.
 
 ## Architecture
 

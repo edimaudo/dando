@@ -16,6 +16,35 @@ video = load_data(path + "video_email_data_table.csv")
 year_list = [2015,2016,2017,2018,2019,2020,2021,2022,2023,2024]
 month_list = ['January','February','March','April','May','June','July','August','September','October','November','December']
 
+# Data transcribed from the provided images
+engagement_data = {
+    "Donor Portfolio": [
+        "Champions", "Loyal Customers", "Potential Loyalist", "Recent Donors",
+        "Promising Donors", "Requires Assistance", "Getting Less Frequent",
+        "At Risk", "Can't Lose them", "Lost"
+    ],
+    "Description": [
+        "Donors who have visited most recently, visited most frequently and spent the most.",
+        "Donors who visited recently visited often and spent a great amount",
+        "A recent donor, who spent a good amount",
+        "Donors visited most recently, but not often, and have not spent much",
+        "Average recency, frequency, and monetary scores",
+        "Donors who have spent a good amount but long ago (not visited recently)",
+        "Below-average recency, frequency, and monetary values",
+        "The donor has spent a great amount and visited often but long ago (not visited recently)",
+        "The donor makes large donations and often but has not returned in a long time",
+        "Lowest recency, frequency, and monetary scores."
+    ],
+    "Engagement Strategy": [
+        "Reward these", "These donors", "Engage them", "For new donors",
+        "Make them loyal", "Need to bring", "The donor will",
+        "Listen to their", "Win them back", "Make your presence"
+    ]
+}
+
+# Creating the DataFrame
+engagement_df = pd.DataFrame(engagement_data)
+
 theme_config = {
     'template': 'simple_white',
     'title_x': 0.5,
@@ -384,33 +413,6 @@ def plot_rfm_treemap(rfm_df):
                      color='Segment')
     return fig
 
-import pandas as pd
 
-# Data transcribed from the provided images
-engagement_data = {
-    "Donor Portfolio": [
-        "Champions", "Loyal Customers", "Potential Loyalist", "Recent Donors",
-        "Promising Donors", "Requires Assistance", "Getting Less Frequent",
-        "At Risk", "Can't Lose them", "Lost"
-    ],
-    "Description": [
-        "Donors who have visited most recently, visited most frequently and spent the most.",
-        "Donors who visited recently visited often and spent a great amount",
-        "A recent donor, who spent a good amount",
-        "Donors visited most recently, but not often, and have not spent much",
-        "Average recency, frequency, and monetary scores",
-        "Donors who have spent a good amount but long ago (not visited recently)",
-        "Below-average recency, frequency, and monetary values",
-        "The donor has spent a great amount and visited often but long ago (not visited recently)",
-        "The donor makes large donations and often but has not returned in a long time",
-        "Lowest recency, frequency, and monetary scores."
-    ],
-    "Engagement Strategy": [
-        "Reward these", "These donors", "Engage them", "For new donors",
-        "Make them loyal", "Need to bring", "The donor will",
-        "Listen to their", "Win them back", "Make your presence"
-    ]
-}
 
-# Creating the DataFrame
-engagement_df = pd.DataFrame(engagement_data)
+
