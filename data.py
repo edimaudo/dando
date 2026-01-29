@@ -45,16 +45,9 @@ engagement_data = {
 # Creating the DataFrame
 engagement_df = pd.DataFrame(engagement_data)
 
-theme_config = {
-    'template': 'simple_white',
-    'title_x': 0.5,
-    'font': dict(size=12),
-}
-
-bar_style = {'marker_color': 'black'}
 
 # Gift Data setup
-def get_gift_df(gift, year_range, months):
+def get_gift_df(gift, years, months):
     df = gift.copy()
     df['GIFT_DATE'] = pd.to_datetime(df['GIFT_DATE'])
     
@@ -64,14 +57,13 @@ def get_gift_df(gift, year_range, months):
     df['DOW'] = df['GIFT_DATE'].dt.day_name()
     
     # Filter based on inputs
-    mask = (df['Year'] >= year_range[0]) & (df['Year'] <= year_range[1]) & (df['Month'].isin(months))
+    mask = (df['Year'].isin(years) & df['Month'].isin(months))
     return df[mask]
 
 # Donor Relationship
 
 ## Donor Growth Rate
 def plot_donor_growth(df):
-    """Equivalent to output$donorGrowthRatePlot"""
     stats = df.groupby('Year')['CONSTITUENT_ID'].nunique().reset_index()
     stats.columns = ['Year', 'Unique_Constituents']
     
@@ -82,13 +74,26 @@ def plot_donor_growth(df):
     fig = px.bar(stats, x='Year', y='donorGrowth', 
                  title="Donor Growth by Year",
                  labels={'donorGrowth': 'Donor Growth (%)'},
-                 hover_data={'Year': True, 'donorGrowth': ':.1f%'})
-    fig.update_traces(marker_color='black')
+                 hover_data={'Year': True, 'donorGrowth': ':.1f%'},
+                 color_discrete_sequence=["#4393EF"]
+                 )
+    
+    fig.update_layout(
+        title={'font': {'size': 20}, 'x': 0.5, 'xanchor': 'center'},
+        #yaxis={'categoryorder':'total ascending', 'title': ''}, 
+            title_font_size=20,
+        title_x=0.5,
+        xaxis_title="Year",
+        yaxis_title="Donor Growth",
+        template='plotly_white',
+        margin=dict(l=200, r=10, t=40, b=10), # Increased left margin for long descriptions
+        height=600
+    )
+
     return fig
 
 ## Donor Retention and Churn
 def get_donor_rates(df):
-    """Equivalent to donor_churn_retention <- reactive({...})"""
     # Group by year and create sets of unique IDs
     yearly_donors = df.groupby('Year')['CONSTITUENT_ID'].apply(set).reset_index()
     yearly_donors['n_donors'] = yearly_donors['CONSTITUENT_ID'].apply(len)
@@ -105,108 +110,117 @@ def get_donor_rates(df):
     yearly_donors['retention_rate'] = (yearly_donors['retained'] / yearly_donors['prev_n'] * 100).round(1).fillna(0)
     yearly_donors['churn_rate'] = (100 - yearly_donors['retention_rate']).round(1)
     
-    return yearly_donors[['Year', 'retention_rate', 'churn_rate']]
+    #return yearly_donors[['Year', 'retention_rate', 'churn_rate']]
+    rates_df = yearly_donors
+    
+    # 2. Initialize the Plotly Figure
+    fig = go.Figure()
+
+    # 3. Add Retention Rate Trace (Solid Green)
+    fig.add_trace(go.Scatter(
+        x=rates_df['Year'], 
+        y=rates_df['retention_rate'],
+        mode='lines+markers',
+        name='Retention Rate (%)',
+        line=dict(color='darkgreen', width=3),
+        hovertemplate="Year: %{x}<br>Retention Rate: %{y}%<extra></extra>"
+    ))
+
+    # 4. Add Churn Rate Trace (Dashed Red)
+    fig.add_trace(go.Scatter(
+        x=rates_df['Year'], 
+        y=rates_df['churn_rate'],
+        mode='lines+markers',
+        name='Churn Rate (%)',
+        line=dict(color='red', width=3, dash='dash'),
+        hovertemplate="Year: %{x}<br>Churn Rate: %{y}%<extra></extra>"
+    ))
+
+    # 5. Apply Layout and Styling to match the original dashboard
+    fig.update_layout(
+        title="Donor Retention vs Churn Rate by Year",
+        title_font_size=20,
+        title_x=0.5,
+        xaxis=dict(title="Year", dtick=1),
+        yaxis=dict(title="Percentage (%)"),
+        template="plotly_white",
+        hovermode="x unified",
+        legend=dict(
+            orientation="h", 
+            yanchor="bottom", 
+            y=1.02, 
+            xanchor="right", 
+            x=1
+        )
+    )
+    
+    return fig
 
 # Engagement
-def plot_gift_crm(df, crm):
-    """Equivalent to output$giftCRMPlot"""
-    merged = df.merge(crm, on='CONSTITUENT_ID')
-    stats = merged.groupby('CRM_INTERACTION_TYPE')['AMOUNT'].mean().round(1).reset_index()
+def plot_gift_crm(gift, crm):
+    merged = gift.merge(crm, on='CONSTITUENT_ID')
+    stats = merged.groupby('CRM_INTERACTION_TYPE')['AMOUNT'].sum().round(1).reset_index()
     stats = stats.sort_values('AMOUNT', ascending=True)
     
     fig = px.bar(stats, x='AMOUNT', y='CRM_INTERACTION_TYPE', orientation='h',
                  title="CRM Interaction & Avg. Gift Amount",
                  labels={'AMOUNT': 'Avg. Gift Amount', 'CRM_INTERACTION_TYPE': 'Type'})
-    fig.update_traces(marker_color='black')
-    return fig
-
-
-def gift_crm_plot(gift_df, crm_df):
-    # Data manipulation equivalent to the R pipe
-    df_plot = (
-        pd.merge(gift_df, crm_df, on='CONSTITUENT_ID', how='left')
-        .groupby('CRM_INTERACTION_TYPE')['AMOUNT']
-        .mean()
-        .round(1)
-        .reset_index()
-        .rename(columns={'AMOUNT': 'Total'})
-        .dropna()
-        .sort_values(by='Total', ascending=True) # reorder equivalent
-    )
-
-    # Creating the horizontal bar chart
-    fig = px.bar(
-        df_plot, 
-        x='Total', 
-        y='CRM_INTERACTION_TYPE', 
-        orientation='h',
-        title="CRM Interaction & Avg. Gift Amount",
-        labels={'CRM_INTERACTION_TYPE': 'CRM Interaction Type', 'Total': 'Avg. Gift Amount'},
-        text_auto=True # Optional: shows values on bars
-    )
-
-    # Styling and Tooltip
-    fig.update_traces(
-        marker_color='black',
-        hovertemplate="CRM Interaction Type: %{y}<br>Amount: $%{x:,.1f}<extra></extra>"
-    )
-
-    fig.update_layout(
-        template="simple_white", # Minimal theme
-        xaxis_tickformat=",", # Commas for thousands
-        title_x=0.5,
-        font=dict(size=10)
-    )
-
-    return fig
-
-def crm_outreach_plot(crm_df, year_range, month_list):
-    # Ensure date is datetime object
-    crm_df['CRM_INTERACTION_DATE'] = pd.to_datetime(crm_df['CRM_INTERACTION_DATE'])
     
-    # Extract Year and Month (Label = True equivalent)
-    crm_df['Year'] = crm_df['CRM_INTERACTION_DATE'].dt.year
-    crm_df['Month'] = crm_df['CRM_INTERACTION_DATE'].dt.strftime('%b') # 'Jan', 'Feb', etc.
+    return fig
 
-    # Filter data based on input ranges
-    filtered_crm = crm_df[
-        (crm_df['Year'] >= year_range[0]) & 
-        (crm_df['Year'] <= year_range[1]) & 
-        (crm_df['Month'].isin(month_list))
-    ].copy()
 
-    # Calculate Percentages
+def crm_outreach_plot(crm, years, months):
+    # 1. Create the filtered CRM dataframe (matching get_gift_df logic)
+    df = crm.copy()
+    df['CRM_INTERACTION_DATE'] = pd.to_datetime(df['CRM_INTERACTION_DATE'])
+    
+    # Extract components to match your gift function
+    df['Year'] = df['CRM_INTERACTION_DATE'].dt.year
+    df['Month'] = df['CRM_INTERACTION_DATE'].dt.month_name()
+    
+    # Apply the mask using the lists provided
+    mask = (df['Year'].isin(years) & df['Month'].isin(months))
+    filtered_crm = df[mask]
+
+    # 2. Aggregate data for the "Outreach Rate"
     stats = (
         filtered_crm.groupby('CRM_INTERACTION_TYPE')
         .size()
         .reset_index(name='Total')
     )
-    stats['Percent'] = ((stats['Total'] / stats['Total'].sum()) * 100).round(2)
     
-    # Drop NAs and sort for horizontal plotting
-    stats = stats.dropna().sort_values(by='Percent', ascending=True)
+    # Calculate percentage of total interactions
+    if not stats.empty:
+        stats['Percent'] = (stats['Total'] / stats['Total'].sum() * 100).round(2)
+        stats = stats.sort_values(by='Percent', ascending=True)
+    else:
+        return px.bar(title="No CRM Data for Selected Period")
 
-    # Create Plot
+    # 3. Create the Styled Plot
     fig = px.bar(
         stats, 
         x='Percent', 
         y='CRM_INTERACTION_TYPE', 
         orientation='h',
-        title="CRM Interaction Outreach Rate",
-        labels={'CRM_INTERACTION_TYPE': 'CRM Interaction Type', 'Percent': 'OutReach Rate'}
+        text='Percent',
+        title="<b>CRM Interaction Outreach Rate</b>",
+        labels={'CRM_INTERACTION_TYPE': 'Interaction Type', 'Percent': 'Outreach Rate (%)'}
     )
 
-    # Styling and Tooltip
+    # 4. Styling via Update Methods
     fig.update_traces(
-        marker_color='black',
-        hovertemplate="CRM Interaction Type: %{y}<br>OutReach Rate: %{x}%<extra></extra>"
+        marker_color='#1f77b4', # Professional blue
+        texttemplate='%{text}%', 
+        textposition='outside',
+        hovertemplate="<b>%{y}</b><br>Rate: %{x}%<extra></extra>"
     )
 
     fig.update_layout(
         template="simple_white",
-        xaxis_tickformat=".2f",
+        xaxis=dict(showticklabels=True, range=[0, stats['Percent'].max() * 1.2]),
+        yaxis_title=None,
         title_x=0.5,
-        font=dict(size=10)
+        margin=dict(l=20, r=50, t=60, b=40)
     )
 
     return fig
