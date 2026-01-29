@@ -79,13 +79,14 @@ def plot_donor_growth(df):
                  )
     
     fig.update_layout(
+
         title={'font': {'size': 20}, 'x': 0.5, 'xanchor': 'center'},
         #yaxis={'categoryorder':'total ascending', 'title': ''}, 
             title_font_size=20,
+            template='plotly_white',
         title_x=0.5,
         xaxis_title="Year",
         yaxis_title="Donor Growth",
-        template='plotly_white',
         margin=dict(l=200, r=10, t=40, b=10), # Increased left margin for long descriptions
         height=600
     )
@@ -169,6 +170,7 @@ def plot_gift_crm(gift, crm):
                  labels={'AMOUNT': 'Donation Amount', 'CRM_INTERACTION_TYPE': 'CRM Interaction Type'})
     
     fig.update_layout(
+    template='plotly_white',
     title_font_size=20,
     title_x=0.5,
     xaxis_title='Interaction Type',
@@ -218,7 +220,7 @@ def crm_outreach_plot(crm, years, months):
 
 
     fig.update_layout(
-        template="simple_white",
+        template='plotly_white',
         title_font_size=20,
         #xaxis=dict(showticklabels=True, range=[0, stats['Percent'].max() * 1.2]),
         yaxis_title=None,
@@ -248,6 +250,7 @@ def plot_gift_year(df):
     fig.update_yaxes(tickformat="$,.2s")
 
     fig.update_layout(
+        template='plotly_white',
         title_font_size=20,
         title_x=0.5,
         height=600,
@@ -269,6 +272,7 @@ def plot_gift_year_count(df):
     
 
     fig.update_layout(
+    template='plotly_white',
     title_font_size=20,
     yaxis_title='Donations',
     title_x=0.5,
@@ -280,25 +284,25 @@ def plot_gift_year_count(df):
 ## Gift Amouny Growth
 def plot_gift_year_growth(df):
     # Aggregation and Growth Calculation
-    stats = df.groupby('Year')['AMOUNT'].mean().sort_index()
+    stats = df.groupby('Year')['AMOUNT'].sum().sort_index()
     growth = stats.pct_change().fillna(0) * 100
     plot_df = growth.round(1).reset_index(name='AvgGiftGrowth')
 
     fig = px.bar(
         plot_df, x='Year', y='AvgGiftGrowth',
-        title="Avg. Gift Amount Growth by Year",
+        title="Donation Amount Growth by Year",
         labels={'AvgGiftGrowth': 'Growth (%)', 'Year': 'Year'},
         custom_data=['Year', 'AvgGiftGrowth']
     )
 
-    # Replicating the custom tooltip text
-    #fig.update_traces(
-    #    **bar_style,
-    #    hovertemplate="Year: %{customdata[0]}<br>Donor Growth: %{customdata[1]}%"
-    #)
-    
-    #fig.update_layout(**theme_config)
     fig.update_xaxes(dtick=1)
+
+    fig.update_layout(
+    template='plotly_white',
+    title_font_size=20,
+    yaxis_title='Donations',
+    title_x=0.5,
+    height=600)
     return fig
 
 ## Gift by time period
@@ -309,35 +313,69 @@ def plot_gift_time_period(df, period_col):
     if period_col == 'Month':
         order = ['January', 'February', 'March', 'April', 'May', 'June', 
                  'July', 'August', 'September', 'October', 'November', 'December']
-        title = "Avg. Gift Amount by Month"
+        title = "Donation Amount by Month"
     else:
         order = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
-        title = "Avg. Gift Amount by Day of Week"
+        title = "Donation Amount by Day of Week"
 
     # Aggregation
-    plot_df = df.groupby(period_col)['AMOUNT'].mean().round(1).reindex(order).reset_index()
+    plot_df = df.groupby(period_col)['AMOUNT'].sum().round(1).reindex(order).reset_index()
     plot_df = plot_df.dropna()
 
     fig = px.bar(
         plot_df, x=period_col, y='AMOUNT',
         title=title,
-        labels={'AMOUNT': 'Avg. Gift Amount'},
+        labels={'AMOUNT': 'Donation Amount'},
         hover_data={period_col: True, 'AMOUNT': ':$:.1f'}
     )
 
-    #fig.update_traces(**bar_style)
-    #fig.update_layout(**theme_config)
     fig.update_yaxes(tickformat=",")
+    fig.update_layout(
+    template='plotly_white',     
+    title_font_size=20,
+    yaxis_title='Donations',
+    title_x=0.5,
+    height=600)
+    
     return fig
 
 # Online Performance
+def get_video_stats(video_df, years, months):
+    # Filter and setup (video_df reactive)
+    df = video_df.copy()
+    df['SENT_DATE'] = pd.to_datetime(df['SENT_DATE'])
+    df['Year'] = df['SENT_DATE'].dt.year
+    df['Month'] = df['SENT_DATE'].dt.month_name()
+    
+    mask = (df['Year'].isin(years) & df['Month'].isin(months))
+    filtered_df = df[mask]
+    
+    # Aggregation (video_df1 reactive)
+    stats = filtered_df.groupby('Year').agg(
+        Total_Sent=('SENT_DATE', 'count'),
+        Total_Bounced=('BOUNCED', 'sum'),
+        Total_Unsub=('UNSUBSCRIBED', 'sum'),
+        Video_views=('VIDEO_VIEWS', 'sum'),
+        Video_clicks=('CLICKS', 'sum')
+    ).reset_index()
+    
+    stats['Bounce_Rate'] = (stats['Total_Bounced'] / stats['Total_Sent'] * 100).round(2)
+    stats['Unsub_Rate'] = (stats['Total_Unsub'] / stats['Total_Sent'] * 100).round(2)
+    
+    return stats
+
+
 def plot_video_views(stats):
-    """Equivalent to output$videoViewPlot"""
     fig = px.bar(stats, x='Year', y='Video_views', 
                  title="Video Views by Year",
                  labels={'Video_views': 'Views'})
-    fig.update_traces(marker_color='black', hovertemplate="Year: %{x}<br>Video Views: %{y}")
-    fig.update_layout(template='minimal')
+    fig.update_traces(marker_color='#3B82F6', hovertemplate="Year: %{x}<br>Video Views: %{y}")
+    fig.update_layout(
+    template='plotly_white',     
+    title_font_size=20,
+    yaxis_title='Donations',
+    title_x=0.5,
+    height=600)
     return fig
 
 def plot_video_clicks(stats):
@@ -346,8 +384,13 @@ def plot_video_clicks(stats):
     fig = px.bar(stats, x='Year', y='Video_clicks', 
                  title="Video Clicks by Year",
                  labels={'Video_clicks': 'Clicks'})
-    fig.update_traces(marker_color='black', hovertemplate="Year: %{x}<br>Video Clicks: %{y}")
-    fig.update_layout(template='minimal')
+    fig.update_traces(marker_color='#3B82F6', hovertemplate="Year: %{x}<br>Video Clicks: %{y}")
+    fig.update_layout(
+    template='plotly_white',     
+    title_font_size=20,
+    yaxis_title='Donations',
+    title_x=0.5,
+    height=600)
     return fig
 
 
@@ -359,7 +402,7 @@ def plot_bounce_unsub_rate(stats):
     # Add Bounce Rate (Bars)
     fig.add_trace(
         go.Bar(x=stats['Year'], y=stats['Bounce_Rate'], name="Bounce Rate (%)", 
-               marker_color='black', opacity=0.8),
+               marker_color='#3B82F6', opacity=0.8),
         secondary_y=False,
     )
 
@@ -373,8 +416,11 @@ def plot_bounce_unsub_rate(stats):
     fig.update_layout(
         title_text="Bounce Rate vs Unsubscribe Rate by Year",
         xaxis_title="Year",
-        template='minimal',
-        legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1)
+        template='plotly_white',#template='minimal',
+        legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1,),
+        title_font_size=20,
+        title_x=0.5,
+        height=600
     )
 
     fig.update_yaxes(title_text="Bounce Rate (%)", secondary_y=False)

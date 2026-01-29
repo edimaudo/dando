@@ -11,6 +11,7 @@ with st.sidebar:
 
 gift_df = get_gift_df(gift,year_selection,month_selection)
 crm_df = crm
+video_df = get_video_stats(video, year_selection, month_selection)
 
 tab1, tab2, tab3, tab4 = st.tabs(["Donor Relationship", "Engagement",'Giving Level',"Online Performance"])
 
@@ -32,12 +33,13 @@ with tab3:
     # Yearly Donation Growth
     st.plotly_chart(plot_gift_year_growth(gift_df))
     # Donation Amount Per Month
-
+    st.plotly_chart(plot_gift_time_period(gift_df, "Month"))
     # Donation Amount Per Day of Week
-
-#with tab4:
+    st.plotly_chart(plot_gift_time_period(gift_df, "DOW"))
+with tab4:
      # video views per year
-
+    st.plotly_chart(plot_video_views(video_df))
      # # of clicks per year
-
+    st.plotly_chart(plot_video_clicks(video_df))
      # bounce and unsubscribe rate per year
+    st.plotly_chart(plot_bounce_unsub_rate(video_df))
