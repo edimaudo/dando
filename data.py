@@ -141,6 +141,7 @@ def get_donor_rates(df):
         title="Donor Retention vs Churn Rate by Year",
         title_font_size=20,
         title_x=0.5,
+        height=600,
         xaxis=dict(title="Year", dtick=1),
         yaxis=dict(title="Percentage (%)"),
         template="plotly_white",
@@ -152,6 +153,7 @@ def get_donor_rates(df):
             xanchor="right", 
             x=1
         )
+        
     )
     
     return fig
@@ -163,9 +165,15 @@ def plot_gift_crm(gift, crm):
     stats = stats.sort_values('AMOUNT', ascending=True)
     
     fig = px.bar(stats, x='AMOUNT', y='CRM_INTERACTION_TYPE', orientation='h',
-                 title="CRM Interaction & Avg. Gift Amount",
-                 labels={'AMOUNT': 'Avg. Gift Amount', 'CRM_INTERACTION_TYPE': 'Type'})
+                 title="CRM Interaction & Donation Amount",
+                 labels={'AMOUNT': 'Donation Amount', 'CRM_INTERACTION_TYPE': 'CRM Interaction Type'})
     
+    fig.update_layout(
+    title_font_size=20,
+    title_x=0.5,
+    xaxis_title='Interaction Type',
+    yaxis_title='Donation Amount',
+    height=600)
     return fig
 
 
@@ -202,25 +210,21 @@ def crm_outreach_plot(crm, years, months):
         x='Percent', 
         y='CRM_INTERACTION_TYPE', 
         orientation='h',
-        text='Percent',
+        #text='Percent',
         title="<b>CRM Interaction Outreach Rate</b>",
         labels={'CRM_INTERACTION_TYPE': 'Interaction Type', 'Percent': 'Outreach Rate (%)'}
+        #,color_discrete_sequence=['#4393EF']
     )
 
-    # 4. Styling via Update Methods
-    fig.update_traces(
-        marker_color='#1f77b4', # Professional blue
-        texttemplate='%{text}%', 
-        textposition='outside',
-        hovertemplate="<b>%{y}</b><br>Rate: %{x}%<extra></extra>"
-    )
 
     fig.update_layout(
         template="simple_white",
-        xaxis=dict(showticklabels=True, range=[0, stats['Percent'].max() * 1.2]),
+        title_font_size=20,
+        #xaxis=dict(showticklabels=True, range=[0, stats['Percent'].max() * 1.2]),
         yaxis_title=None,
         title_x=0.5,
-        margin=dict(l=20, r=50, t=60, b=40)
+        margin=dict(l=20, r=50, t=60, b=40), 
+        height = 600
     )
 
     return fig
@@ -229,17 +233,26 @@ def crm_outreach_plot(crm, years, months):
 ## Avg Gift Amount
 def plot_gift_year(df):
     # Aggregation
-    plot_df = df.groupby('Year')['AMOUNT'].mean().round(1).reset_index()
+    plot_df = df.groupby('Year')['AMOUNT'].sum().round(1).reset_index()
     plot_df = plot_df.dropna()
 
     fig = px.bar(
         plot_df, x='Year', y='AMOUNT',
-        title="Avg. Gift Amount by Year",
-        labels={'AMOUNT': 'Avg. Gift Amount', 'Year': 'Year'},
-        hover_data={'Year': True, 'AMOUNT': ':$:.1f'}
+        title="Donation Amount by Year",
+        labels={'AMOUNT': 'Donation Amount', 'Year': 'Year'}
     )
 
-    
+    fig.update_traces(
+        hovertemplate="<b>Year:</b> %{x}<br><b>Donation Amount:</b> %{y:$,.0f}<extra></extra>"
+    )
+    fig.update_yaxes(tickformat="$,.2s")
+
+    fig.update_layout(
+        title_font_size=20,
+        title_x=0.5,
+        height=600,
+    )
+
     return fig
 
 ## Gift Count by Year
@@ -250,14 +263,18 @@ def plot_gift_year_count(df):
 
     fig = px.bar(
         plot_df, x='Year', y='Total',
-        title="Gift Count by Year",
-        labels={'Total': 'Gift Count', 'Year': 'Year'}
+        title="Donations by Year",
+        labels={'Total': 'Donations', 'Year': 'Year'}
     )
+    
 
-    #fig.update_traces(**bar_style)
-    #fig.update_layout(**theme_config)
-    fig.update_xaxes(dtick=1)
-    fig.update_yaxes(tickformat=",")
+    fig.update_layout(
+    title_font_size=20,
+    yaxis_title='Donations',
+    title_x=0.5,
+    height=600)
+
+
     return fig
 
 ## Gift Amouny Growth
