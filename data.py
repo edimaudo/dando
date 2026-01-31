@@ -60,6 +60,17 @@ def get_gift_df(gift, years, months):
     mask = (df['Year'].isin(years) & df['Month'].isin(months))
     return df[mask]
 
+def get_gift_segment_df(gift):
+    df = gift.copy()
+    df['GIFT_DATE'] = pd.to_datetime(df['GIFT_DATE'])
+    
+    # Extract Year, Month, Day of Week
+    df['Year'] = df['GIFT_DATE'].dt.year
+    df['Month'] = df['GIFT_DATE'].dt.month_name()
+    df['DOW'] = df['GIFT_DATE'].dt.day_name()
+    
+    return df
+
 # Donor Relationship
 
 ## Donor Growth Rate
@@ -430,11 +441,15 @@ def plot_bounce_unsub_rate(stats):
 
 
 # Customer Segmentation
+# Customer Segmentation
 def get_rfm_segments(gift_df, segments_input):
-    """Equivalent to rfm_info <- reactive({...})"""
+    # 1. Ensure dates are datetime and apply 2015 filter
+    gift_df['GIFT_DATE'] = pd.to_datetime(gift_df['GIFT_DATE'])
+    gift_df = gift_df[gift_df['GIFT_DATE'] >= '2015-01-01'].copy()
     
-    # 1. Raw RFM Calculation
-    analysis_date = pd.to_datetime('today')
+    # 2. Raw RFM Calculation
+    analysis_date = gift_df['GIFT_DATE'].max() + pd.Timedelta(days=1)
+    
     rfm = gift_df.groupby('CONSTITUENT_ID').agg({
         'GIFT_DATE': lambda x: (analysis_date - x.max()).days,
         'CONSTITUENT_ID': 'count',
@@ -445,39 +460,59 @@ def get_rfm_segments(gift_df, segments_input):
         'AMOUNT': 'amount'
     })
 
-    # 2. Assign Scores 1-5 (Quintiles)
-    # Recency: Lower is better (5), Higher is worse (1)
-    rfm['r_score'] = pd.qcut(rfm['recency_days'], 5, labels=[5, 4, 3, 2, 1]).astype(int)
-    # Frequency & Monetary: Higher is better (5)
-    rfm['f_score'] = pd.qcut(rfm['transaction_count'].rank(method='first'), 5, labels=[1, 2, 3, 4, 5]).astype(int)
-    rfm['m_score'] = pd.qcut(rfm['amount'], 5, labels=[1, 2, 3, 4, 5]).astype(int)
+    # 3. Forced Ranking + NaN Protection
+    # method='first' ensures no bins collapse, guaranteeing scores 1-5 exist
+    rfm['r_score'] = pd.qcut(rfm['recency_days'].rank(method='first'), 5, labels=[5, 4, 3, 2, 1]).astype(float).fillna(0).astype(int)
+    rfm['f_score'] = pd.qcut(rfm['transaction_count'].rank(method='first'), 5, labels=[1, 2, 3, 4, 5]).astype(float).fillna(0).astype(int)
+    rfm['m_score'] = pd.qcut(rfm['amount'].rank(method='first'), 5, labels=[1, 2, 3, 4, 5]).astype(float).fillna(0).astype(int)
 
-    # 3. Define the 10 Segments (from your R code)
-    # This matches your r_low, r_high, etc. vectors
-    segment_map = [
-        {'segment': 'Champions', 'r': (5,5), 'f': (5,5), 'm': (5,5)},
-        {'segment': 'Loyal Customers', 'r': (3,5), 'f': (3,5), 'm': (2,5)},
-        {'segment': 'Potential Loyalist', 'r': (2,4), 'f': (2,4), 'm': (2,4)},
-        {'segment': 'Recent Customers', 'r': (3,4), 'f': (1,3), 'm': (3,5)},
-        {'segment': 'Promising', 'r': (4,5), 'f': (1,3), 'm': (1,5)},
-        {'segment': 'Customers Needing Attention', 'r': (1,2), 'f': (3,4), 'm': (4,5)},
-        {'segment': 'About To Sleep', 'r': (1,2), 'f': (2,5), 'm': (4,5)},
-        {'segment': 'At Risk', 'r': (1,3), 'f': (3,5), 'm': (3,5)},
-        {'segment': 'Cant Lose Them', 'r': (2,3), 'f': (1,3), 'm': (1,4)},
-        {'segment': 'Lost', 'r': (1,1), 'f': (1,5), 'm': (1,5)}
-    ]
+# 4. Exhaustive Hierarchical Mapping
+    def find_segment(row):
+        r, f, m = row['r_score'], row['f_score'], row['m_score']
+        
+        # CHAMPIONS: Best of the best
+        if r >= 4 and f >= 4 and m >= 4:
+            return "Champions"
+        
+        # LOYAL CUSTOMERS: High frequency/money, still active
+        elif f >= 4 and r >= 3:
+            return "Loyal Customers"
+            
+        # POTENTIAL LOYALIST: Mid-range, consistent
+        elif r >= 3 and f >= 3:
+            return "Potential Loyalist"
+            
+        # PROMISING DONORS: Very recent, but just starting out
+        elif r == 5 and f <= 2:
+            return "Promising Donors"
+            
+        # RECENT DONORS: Recent, low frequency
+        elif r == 4 and f <= 2:
+            return "Recent Donors"
+            
+        # REQUIRES ASSISTANCE: Former high frequency, but haven't given in a while
+        elif r == 2 and f >= 4:
+            return "Requires Assistance"
+            
+        # GETTING LESS FREQUENT: Mid-range frequency, but slipping away
+        elif r == 2 and f == 3:
+            return "Getting Less Frequent"
+            
+        # AT RISK: Haven't given in a long time, but were high value
+        elif r <= 2 and f >= 3:
+            return "At Risk"
+            
+        # CAN'T LOSE THEM: Long time since last gift, but donated large amounts
+        elif r <= 2 and m >= 4:
+            return "Can't Lose them"
+            
+        # LOST: Everyone else (Low Recency, Low Frequency, Low Money)
+        else:
+            return "Lost"
 
-    def assign_segment(row):
-        for s in segment_map:
-            if (s['r'][0] <= row['r_score'] <= s['r'][1] and
-                s['f'][0] <= row['f_score'] <= s['f'][1] and
-                s['m'][0] <= row['m_score'] <= s['m'][1]):
-                return s['segment']
-        return 'Others'
+    rfm['segment'] = rfm.apply(find_segment, axis=1)
 
-    rfm['segment'] = rfm.apply(assign_segment, axis=1)
-    
-    # Filter by user input (equivalent to input$rfmInput)
+    # 5. Filter based on user selection
     return rfm[rfm['segment'].isin(segments_input)]
 
 def plot_rfm_treemap(rfm_df):
@@ -488,8 +523,29 @@ def plot_rfm_treemap(rfm_df):
     fig = px.treemap(counts, path=['Segment'], values='Count',
                      title="Donor Portfolios",
                      color='Segment')
+    
+
+    fig.update_layout(
+        template='plotly_white',
+        title_font_size=20,
+        title_x=0.5,
+        height=600
+    )
     return fig
 
 
-
+def get_final_filtered_data(gift, rfm_output, segments_input):
+    # Ensure dates are datetime for the filter to work
+    gift['GIFT_DATE'] = pd.to_datetime(gift['GIFT_DATE'])
+    
+    # Process the chain
+    final_df = (
+        gift[gift['GIFT_DATE'] >= '2015-01-01']
+        .merge(rfm_output, on='CONSTITUENT_ID', how='inner')
+        .loc[lambda x: x['segment'].isin(segments_input)] # Alternative filter method
+        .loc[:, ['CONSTITUENT_ID', 'segment', 'GIFT_DATE', 'AMOUNT']]
+        .dropna()
+    )
+    
+    return final_df
 
