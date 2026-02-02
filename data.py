@@ -549,3 +549,68 @@ def get_final_filtered_data(gift, rfm_output, segments_input):
     
     return final_df
 
+# forecasting
+def forecast_donations(gifts_segment_df, horizon):
+    # Resample to monthly sums
+    monthly = gifts_segment_df.set_index('GIFT_DATE')['AMOUNT'].resample('MS').sum()
+    
+    # Fit ARIMA model
+    model = auto_arima(monthly, seasonal=True, m=12)
+    forecast, conf_int = model.predict(n_periods=horizon, return_conf_int=True)
+    
+    # Create forecast dataframe
+    forecast_dates = pd.date_range(start=monthly.index[-1] + pd.DateOffset(months=1), 
+                                   periods=horizon, freq='MS')
+    
+    return pd.DataFrame({
+        'Month': forecast_dates,
+        'Forecasted Donations': forecast.values.round(1)
+    })
+
+
+def create_forecast_chart(forecast_df):
+    fig = px.bar(
+        forecast_df, 
+        x='Month', 
+        y='Forecasted Donations',
+        title="Projected Donations Forecast",
+        labels={'Forecasted Donations': 'Amount ($)', 'Month': 'Month'},
+        text_auto='.2s' # Adds formatted values on top of bars
+    )
+
+    fig.update_layout(
+        template='plotly_white',
+        title_font_size=20,
+        title_x=0.5,
+        height=600
+    )
+    
+    # Clean up x-axis to show Month Year (e.g., Jan 2026)
+    fig.update_xaxes(dtick="M1", tickformat="%b %Y", tickangle=-45)
+    
+    return fig
+
+def create_forecast_table(forecast_df):
+    # Format the date for display
+    display_df = forecast_df.copy()
+    display_df['Month'] = display_df['Month'].dt.strftime('%B %Y')
+    display_df['Forecasted Donations'] = display_df['Forecasted Donations'].apply(lambda x: f"${x:,.2f}")
+
+    fig = go.Figure(data=[go.Table(
+        header=dict(
+            values=["<b>Month</b>", "<b>Forecasted Amount</b>"],
+            fill_color='dodgerblue',
+            align='center',
+            font=dict(color='white', size=18)
+        ),
+        cells=dict(
+            values=[display_df['Month'], display_df['Forecasted Donations']],
+            fill_color='whitesmoke',
+            align='center',
+            font=dict(color='black', size=14),
+            height=50
+        )
+    )])
+    
+    fig.update_layout(margin=dict(l=0, r=0, b=10, t=10))
+    return fig
