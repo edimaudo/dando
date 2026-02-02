@@ -21,6 +21,10 @@ from scipy.stats import linregress
 import sklearn
 from sklearn.linear_model import LinearRegression
 from pmdarima import auto_arima
+from google import genai
+from elasticsearch import Elasticsearch
+from dotenv import load_dotenv, dotenv_values 
+load_dotenv() 
 
 """
 App Information
