@@ -1,5 +1,6 @@
 from utils import *
 from data import *
+from donor_agent_service import DonorAgentService
 
 st.title(APP_NAME)
 st.header(SEGMENTATION_HEADER)
@@ -43,3 +44,29 @@ with tab4:
     st.plotly_chart(plot_gift_time_period(gift_segment_df, "Month"))
     # Donation Amount Per Day of Week
     st.plotly_chart(plot_gift_time_period(gift_segment_df, "DOW"))
+with tab5:
+    st.subheader("Segment Agent: Major Gift Insights")
+    agent = DonorAgentService()
+    
+    selected_segment = st.selectbox("Analyze Segment", engagement_df['Donor Portfolio'])
+    
+    if st.button("Generate Pipeline Report"):
+        with st.spinner("Analyzing donor history in Elasticsearch..."):
+            df, analysis = agent.get_major_gift_pipeline(selected_segment)
+            
+            # Display raw data from Elastic
+            st.write("### Top Prospects (Data)")
+            st.dataframe(df)
+            
+            # Display AI Reasoning from Gemini
+            st.write("### AI Strategic Insights")
+            st.markdown(analysis)
+
+    st.divider()
+    
+    st.subheader("Outreach Generator")
+    donor_id_input = st.text_input("Enter Constituent ID for Personalized Draft")
+    if st.button("Generate Email"):
+        with st.spinner("Drafting with Donation Agent.."):
+            draft = agent.generate_personalized_outreach(donor_id_input)
+            st.text_area("Generated Email Draft", value=draft, height=300)
