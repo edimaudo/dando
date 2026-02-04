@@ -1,6 +1,6 @@
 from utils import *
 from data import *
-from donor_agent_service import DonorAgentService
+from data_plot import *
 
 st.title(APP_NAME)
 st.header(SEGMENTATION_HEADER)

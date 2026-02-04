@@ -1,5 +1,6 @@
 from utils import *
 from data import *
+from data_plot import *
 
 st.title(APP_NAME)
 st.header(FORECASTING_HEADER)
