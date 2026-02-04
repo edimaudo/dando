@@ -42,3 +42,18 @@ st.set_page_config(
     page_title=APP_NAME,
     layout="wide"
 )
+
+def get_es_client():
+    return Elasticsearch(
+        os.getenv("ELASTIC_URL"),
+        api_key=os.getenv("ELASTIC_API_KEY")
+    )
+
+def get_gemini_client():
+    return genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
+
+def run_esql_to_dataframe(query):
+    """Executes ES|QL and returns a Pandas DataFrame for the Agent to read."""
+    es = get_es_client()
+    res = es.esql.query(query=query, format="arrow")
+    return res.to_pandas()

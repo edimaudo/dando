@@ -26,3 +26,43 @@ with tab1:
     st.plotly_chart(create_forecast_chart(forecast_df))
     # forecast chart table
     st.plotly_chart(create_forecast_table(forecast_df))
+
+with tab2:
+    st.subheader("Forecast Agent")
+    
+    if st.button("Query Elasticsearch & Analyze"):
+        with st.spinner(f"Fetching last {forecast_horizon_input} months from Elastic..."):
+            # 1. Format segments for the query
+            segments_str = ", ".join([f"'{s}'" for s in donor_segment_input])
+            
+            # 2. DYNAMIC ES|QL Query
+            # We now use the forecast_horizon_input to determine how much history to fetch
+            es_query = f"""
+            FROM gift_transactions
+            | WHERE segment IN ({segments_str})
+            | EVAL month = DATE_TRUNC(1 MONTH, GIFT_DATE)
+            | STATS total_rev = SUM(AMOUNT), donor_count = COUNT_DISTINCT(CONSTITUENT_ID) BY month
+            | SORT month DESC
+            | LIMIT {forecast_horizon_input} 
+            """
+            
+            # 3. Execute and Analyze
+            raw_data = run_esql_query(es_query)
+            client = get_gemini_client()
+            
+            prompt = f"""
+            System: You are a Non-Profit Data Scientist.
+            Context: The user is looking at a {forecast_horizon_input}-month forecast.
+            Historical Data (Last {forecast_horizon_input} months): {raw_data}
+            
+            Task: Based on this historical data from Elasticsearch, evaluate if a 
+            {forecast_horizon_input}-month growth trend is sustainable for the {donor_segment_input} segments.
+            """
+            
+            response = client.models.generate_content(
+                model="gemini-2.0-flash", 
+                contents=prompt
+            )
+            
+            st.info(f"Analyzing {forecast_horizon_input} months of donation data via ES|QL.")
+            st.markdown(response.text)
