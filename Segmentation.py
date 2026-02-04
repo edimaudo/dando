@@ -8,15 +8,27 @@ st.header(SEGMENTATION_HEADER)
 with st.sidebar:
     donor_segment_input = st.multiselect("Donor Segment", engagement_df['Donor Portfolio'],engagement_df['Donor Portfolio'])
 
+@st.cache_data
+def get_processed_segment(selected_segments):
+    """
+    Optimized merge: Filters before joining and caches the result 
+    to prevent memory spikes on every interaction.
+    """
+    # Calculate RFM only for segments selected in sidebar
+    rfm_sub = get_rfm_segments(gift, selected_segments)
+    
+    # Filter 'gift' by date first to reduce the memory footprint of the merge
+    processed_df = (
+        gift[gift['GIFT_DATE'] >= '2015-01-01']
+        .merge(rfm_sub, on='CONSTITUENT_ID', how='inner')
+        .loc[:, ['CONSTITUENT_ID', 'segment', 'GIFT_DATE', 'AMOUNT']]
+        .dropna()
+    )
+    return processed_df
+
 crm_df = crm
 rfm_df = get_rfm_segments(gift, donor_segment_input)
-gift_segment_df1 = (
-    gift[gift['GIFT_DATE'] >= '2015-01-01']                     # 1. Filter
-    .merge(rfm_df , on='CONSTITUENT_ID', how='inner')       # 2. Inner Join
-    .loc[:, ['CONSTITUENT_ID', 'segment', 'GIFT_DATE', 'AMOUNT']] # 3. Select columns
-    .dropna()                                                   # 4. na.omit()
-)
-gift_segment_df = get_gift_segment_df(gift_segment_df1)
+gift_segment_df = get_gift_segment_df(get_processed_segment(donor_segment_input))
 
 
 tab1, tab2, tab3, tab4,tab5 = st.tabs(['Donor Portfolio',"Donor Relationship", "Engagement",'Giving Level',"Segment Agent"])
@@ -113,7 +125,7 @@ with tab5:
             target_amount = st.number_input("Target Raise ($)", value=25000)
             if st.button("Simulate Campaign Impact"):
                 donor_count = len(relevant_ids)
-                avg_gift = gift_segment_df1['AMOUNT'].mean()
+                avg_gift = gift_segment_df['AMOUNT'].mean()
                 
                 client = get_gemini_client()
                 prompt = f"We have {donor_count} donors in the {donor_segment_input} segments with an average gift of ${avg_gift:.2f}. Can we raise ${target_amount} with a 5% response rate?"
