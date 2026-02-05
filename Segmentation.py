@@ -10,10 +10,6 @@ with st.sidebar:
 
 @st.cache_data
 def get_processed_segment(selected_segments):
-    """
-    Optimized merge: Filters before joining and caches the result 
-    to prevent memory spikes on every interaction.
-    """
     # Calculate RFM only for segments selected in sidebar
     rfm_sub = get_rfm_segments(gift, selected_segments)
     
@@ -61,7 +57,7 @@ with tab5:
     
     # 1. THE BRIDGE: Get IDs from the locally calculated RFM segments
     # This ensures the Agent is looking at the exact donors you see in the charts
-    relevant_ids = rfm_df['CONSTITUENT_ID'].unique().tolist()
+    relevant_ids = gift_segment_df['CONSTITUENT_ID'].unique().tolist()
     
     if not relevant_ids:
         st.warning("No donors found in these segments to analyze.")

@@ -69,8 +69,8 @@ engagement_df = pd.DataFrame(engagement_data)
 
 # Gift Data setup
 def get_gift_df(gift, years, months):
-    df = gift.copy()
-    df['GIFT_DATE'] = pd.to_datetime(df['GIFT_DATE'])
+    df = gift #.copy()
+    #df['GIFT_DATE'] = pd.to_datetime(df['GIFT_DATE'])
     
     # Extract Year, Month, Day of Week
     df['Year'] = df['GIFT_DATE'].dt.year
@@ -82,8 +82,8 @@ def get_gift_df(gift, years, months):
     return df[mask]
 
 def get_gift_segment_df(gift):
-    df = gift.copy()
-    df['GIFT_DATE'] = pd.to_datetime(df['GIFT_DATE'])
+    df = gift #.copy()
+    #df['GIFT_DATE'] = pd.to_datetime(df['GIFT_DATE'])
     
     # Extract Year, Month, Day of Week
     df['Year'] = df['GIFT_DATE'].dt.year
@@ -176,7 +176,7 @@ def get_rfm_segments(gift_df, segments_input):
 
 def get_final_filtered_data(gift, rfm_output, segments_input):
     # Ensure dates are datetime for the filter to work
-    gift['GIFT_DATE'] = pd.to_datetime(gift['GIFT_DATE'])
+    #gift['GIFT_DATE'] = pd.to_datetime(gift['GIFT_DATE'])
     
     # Process the chain
     final_df = (
