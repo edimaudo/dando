@@ -233,16 +233,35 @@ def forecast_donations(gifts_segment_df, horizon):
 #         # Fallback for different provider response structures
 #         return response.get('result', "Agent connected, but no text was returned.")
 
+# def get_elastic_agent_response(inference_id, user_input, context_df=None):
+#     es = get_es_client()
+#     context_str = context_df.to_json() if context_df is not None else "No data provided."
+    
+#     # Using 'chat' matches the Agent Builder UI requirement
+#     response = es.inference.inference(
+#         inference_id=inference_id,
+#         task_type="chat", 
+#         input=f"DATA CONTEXT: {context_str}\n\nUSER REQUEST: {user_input}"
+#     )
+#     return response['completion'][0]['result']
+
 def get_elastic_agent_response(inference_id, user_input, context_df=None):
+    """
+    Definitive function using the 'completion' task type for Inference API.
+    """
     es = get_es_client()
+    
+    # Prepare context string
     context_str = context_df.to_json() if context_df is not None else "No data provided."
     
-    # Using 'chat' matches the Agent Builder UI requirement
+    # Use 'completion' instead of 'chat' to avoid the BadRequestError
     response = es.inference.inference(
         inference_id=inference_id,
-        task_type="chat", 
+        task_type="completion", 
         input=f"DATA CONTEXT: {context_str}\n\nUSER REQUEST: {user_input}"
     )
+    
+    # Return the result from the 'completion' path
     return response['completion'][0]['result']
 
 def call_elastic_agent(inference_id, user_input, context_df):

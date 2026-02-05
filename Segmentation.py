@@ -63,7 +63,7 @@ with tab5:
         st.warning("No donors found in these segments to analyze.")
     else:
         # Create a safe ID string for ES|QL (limiting to 1000 for performance)
-        ids_for_query = ", ".join([f"'{str(i)}'" for i in relevant_ids[:1000]])
+        ids_for_query = ", ".join([str(id) for id in relevant_ids[:5]])
         
         # 2. AGENT SELECTION
         agent_choice = st.radio(
