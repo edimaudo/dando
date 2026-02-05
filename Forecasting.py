@@ -5,6 +5,14 @@ from data_plot import *
 st.title(APP_NAME)
 st.header(FORECASTING_HEADER)
 
+# --- 1. SESSION STATE INITIALIZATION ---
+# This ensures the button state persists across the "Tab Jump"
+if 'forecasting_clicked' not in st.session_state:
+    st.session_state.forecasting_clicked = False
+
+def trigger_analysis():
+    st.session_state.forecasting_clicked = True
+
 with st.sidebar:
     donor_segment_input = st.multiselect("Donor Segment", engagement_df['Donor Portfolio'],engagement_df['Donor Portfolio'])
     forecast_horizon_input = st.slider("Forecast Horizon (in months)", min_value=1, max_value=24, value=12, step=1)
@@ -47,24 +55,30 @@ with tab1:
 with tab2:
     st.subheader("Donation Amount Insights")
     st.write(f"This agent evaluates the sustainability of a {forecast_horizon_input}-month growth trend")
+    # Use the callback 'on_click' to set the state
+    if st.button("Run Strategic Analysis", on_click=trigger_analysis):
+        pass
 
-    if st.button("Run Strategic Analysis"):
+# --- 3. PERSISTENT EXECUTION LOGIC ---
+    if st.session_state.forecasting_clicked:
         with st.spinner("Accessing Elastic Agent..."):
             es_query = f"""
                         FROM gift_transactions 
                         | STATS SUM(AMOUNT) BY BUCKET(GIFT_DATE, 1 month) 
-                        | SORT GIFT_DATE DESC 
+                        | SORT gift_date DESC 
                         | LIMIT {forecast_horizon_input}
                         """
-            raw_data = run_esql_to_dataframe(es_query)
-            
-            # # Call the Forecast Agent
-            # agent_insight = get_elastic_agent_response(
-            #     inference_id="revenue-forecaster-agent",
-            #     user_input=f"Analyze the {forecast_horizon_input} month outlook.",
-            #     context_df=raw_data
-            # )
-            agent_insight = call_agent("revenue-forecaster-agent",f"Analyze the {forecast_horizon_input} month outlook",raw_data)
-            
-            st.info("Analysis retrieved.")
-            st.markdown(f"### Strategic Outlook\n{agent_insight}")
+            try:
+                raw_data = run_esql_to_dataframe(es_query)
+                
+                agent_insight = call_agent(
+                    "revenue-forecaster-agent",
+                    f"Analyze the {forecast_horizon_input} month outlook",
+                    raw_data
+                )
+                
+                st.info("Analysis retrieved.")
+                st.markdown(f"### Strategic Outlook\n{agent_insight}")
+                
+            except Exception as e:
+                st.error(f"Error during analysis: {e}")

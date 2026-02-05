@@ -55,57 +55,70 @@ with tab4:
 with tab5:
     st.subheader("Segmentation Agentic Insights")
     
+    # --- 1. SESSION STATE INITIALIZATION ---
+    # We need separate keys for each agent to keep their responses visible independently
+    if 'major_gift_clicked' not in st.session_state:
+        st.session_state.major_gift_clicked = False
+    if 'retention_clicked' not in st.session_state:
+        st.session_state.retention_clicked = False
+
+    # Callbacks to update state before the rerun
+    def trigger_major_gift():
+        st.session_state.major_gift_clicked = True
+        st.session_state.retention_clicked = False # Clear the other agent's view
+
+    def trigger_retention():
+        st.session_state.retention_clicked = True
+        st.session_state.major_gift_clicked = False # Clear the other agent's view
+
     # 1. THE BRIDGE: Get IDs from the locally calculated RFM segments
-    # This ensures the Agent is looking at the exact donors you see in the charts
     relevant_ids = gift_segment_df['CONSTITUENT_ID'].unique().tolist()
     
     if not relevant_ids:
         st.warning("No donors found in these segments to analyze.")
     else:
-        # Create a safe ID string for ES|QL (limiting to 1000 for performance)
+        # Create a safe ID string for ES|QL (numeric, no quotes)
         ids_for_query = ", ".join([str(id) for id in relevant_ids[:5]])
         
         # 2. AGENT SELECTION
         agent_choice = st.radio(
             "Select Active Agent",
             ["Major Gift Pipeline", "Donor Relationship Health"],
-            horizontal=True
+            horizontal=True,
+            key="agent_selector"
         )
         st.divider()
 
         # --- AGENT 1: MAJOR GIFT PIPELINE ---
         if agent_choice == "Major Gift Pipeline":
             st.write("### Pipeline Agent")
-            if st.button("Identify Hidden Capacity"):
+            
+            # Using on_click to prevent the tab jump
+            if st.button("Identify Hidden Capacity", on_click=trigger_major_gift):
+                pass
+
+            if st.session_state.major_gift_clicked:
                 with st.spinner("Consulting Elastic AI Agent..."):
-                    # 1. Get the raw data from ES|QL
+                    # Fixed query to ensure consistent naming (check casing for your project)
                     query = f"FROM constituent_profiles | WHERE CONSTITUENT_ID IN ({ids_for_query}) | LIMIT 10"
                     df = run_esql_to_dataframe(query)
                     
-                    
-                    # agent_insight = get_elastic_agent_response(
-                    #     inference_id="major-gift-agent", 
-                    #     user_input="Who is the #1 priority for discovery?",
-                    #     context_df=df
-                    # )
-                    agent_insight = call_agent("major-gift-agent","Who is the #1 priority for discovery?",df)
+                    agent_insight = call_agent("major-gift-agent", "Who is the #1 priority for discovery?", df)
                     st.info(f"**Agent Priority Strategy:** {agent_insight}")
 
         # --- AGENT 2: STEWARDSHIP VELOCITY ---
         elif agent_choice == "Donor Relationship Health":
             st.write("### Donor Heartbeat")
-            if st.button("Check Donor Health"):
+            
+            # Using on_click to prevent the tab jump
+            if st.button("Check Donor Health", on_click=trigger_retention):
+                pass
+
+            if st.session_state.retention_clicked:
                 with st.spinner("Analyzing via Elastic..."):
-                    # Fetch data and pass to your Retention Agent ID
                     query = f"FROM gift_transactions | WHERE CONSTITUENT_ID IN ({ids_for_query}) | LIMIT 5"
                     df = run_esql_to_dataframe(query)
                     
-                    # agent_insight = get_elastic_agent_response(
-                    #     inference_id="retention-risk-agent", 
-                    #     user_input="Analyze these donor patterns for risk.",
-                    #     context_df=df
-                    #)
-                    agent_insight = call_agent("retention-risk-agent","Analyze these donor patterns for risk.",df)
-
+                    agent_insight = call_agent("retention-risk-agent", "Analyze these donor patterns for risk.", df)
                     st.warning(f"**Retention Risk Analysis:** {agent_insight}")
 
