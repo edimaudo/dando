@@ -27,7 +27,7 @@ rfm_df = get_rfm_segments(gift, donor_segment_input)
 gift_segment_df = get_gift_segment_df(get_processed_segment(donor_segment_input))
 
 
-tab1, tab2, tab3, tab4,tab5 = st.tabs(['Donor Portfolio',"Donor Relationship", "Engagement",'Giving Level',"Segment Agent"])
+tab1, tab2, tab3, tab4,tab5 = st.tabs(['Donor Portfolio',"Donor Relationship", "Donor Engagement",'Donor Giving Level',"Donor Segment Agent"])
 with tab1:
     # rfm treemap
     st.plotly_chart(plot_rfm_treemap(rfm_df))
@@ -75,7 +75,7 @@ with tab5:
 
         # --- AGENT 1: MAJOR GIFT PIPELINE ---
         if agent_choice == "Major Gift Pipeline":
-            st.write("### Pipeline Agent (Powered by Elastic Agent Builder)")
+            st.write("### Pipeline Agent")
             if st.button("Identify Hidden Capacity"):
                 with st.spinner("Consulting Elastic AI Agent..."):
                     # 1. Get the raw data from ES|QL
@@ -93,7 +93,7 @@ with tab5:
 
         # --- AGENT 2: STEWARDSHIP VELOCITY ---
         elif agent_choice == "Donor Relationship Health":
-            st.write("### Stewardship Heartbeat (Elastic AI Assistant)")
+            st.write("### Donor Heartbeat")
             if st.button("Check Donor Health"):
                 with st.spinner("Analyzing via Elastic..."):
                     # Fetch data and pass to your Retention Agent ID
