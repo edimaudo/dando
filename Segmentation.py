@@ -68,7 +68,7 @@ with tab5:
         # 2. AGENT SELECTION
         agent_choice = st.radio(
             "Select Active Agent",
-            ["Major Gift Pipeline", "Donor Relationship Health", "Campaign Simulator"],
+            ["Major Gift Pipeline", "Donor Relationship Health"],
             horizontal=True
         )
         st.divider()
@@ -109,15 +109,3 @@ with tab5:
 
                     st.warning(f"**Retention Risk Analysis:** {agent_insight}")
 
-        # --- AGENT 3: CAMPAIGN SIMULATOR ---
-        elif agent_choice == "Campaign Simulator":
-            st.write("### Strategy Lab")
-            target_amount = st.number_input("Target Raise ($)", value=25000)
-            if st.button("Simulate Campaign Impact"):
-                donor_count = len(relevant_ids)
-                amt_gift = gift_segment_df['AMOUNT'].sum()
-                
-                client = get_gemini_client()
-                prompt = f"We have {donor_count} donors in the {donor_segment_input} segments with an average gift of ${amt_gift:.2f}. Can we raise ${target_amount} with a 5% response rate?"
-                response = client.models.generate_content(model="gemini-2.0-flash", contents=prompt)
-                st.success(f"**Simulation Result:** {response.text}")

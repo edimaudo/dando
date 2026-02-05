@@ -1,28 +1,40 @@
-# dando
-A multi-step agent donation intelligence tool
+# dando | A strategic donation intelligence multi-agent tool
+
+## About
+dando is a strategic donor intelligence platform that transforms donation data into actionable fundraising strategies. It provides trend insights, donor segmenation, analysis of donation data, leveraging Elasticsearch ES|QL for data retrieval and Gemini for data insights which provides nonprofit leaders with a virtual team of specialist agents.
 
 ## Agentic Features
-- **Campaign Simulator (Agentic Forecasting):** Uses Elastic aggregations to simulate ROI for potential outreach.
-- **Personalized Action Drafter:** A multi-step workflow that retrieves constituent profiles, CRM history to generate hyper-personalized outreach.
-- **Customer Segmentation:** Leverages **ES|QL** to answer personalized donation segment questions.
+- **Major Gift Agent:** High-capacity prospect identification
+- **PRetention Agent:** Churn detection and "Win-back" plans
+- **Strategic CFO:** Revenue forecasting and fiscal health
 
-## Architecture
+## Technical Stack
+- Frontend: Streamlit (Python)
+- Database: Elasticsearch (Serverless)
+- Query Language: ES|QL (Elasticsearch Query Language)
+- AI Engine: Google Gemini 2.5 via Elastic Inference API
+- Data Processing: Pandas
 
-The application is built using a modern Python stack optimized for serverless deployment:
+## Getting Started
+1. Environment Configuration
+Create a .env file in the root directory with your Elastic credentials:
 
-* **Backend:** FastAPI
-* **Search Engine:** Elasticsearch (Elastic Cloud)
-* **Orchestration:** Elastic Agent Builder
-* **Frontend:** Jinja2 Templates
-* **Deployment:** Vercel
+Bash
+```
+ELASTIC_URL=https://your-project.es.us-central1.gcp.elastic.cloud
+ELASTIC_API_KEY=your_secure_api_key
+```
 
+2. Installation
 
+Bash
+```
+pip install streamlit elasticsearch python-dotenv pandas
+```
 
-[Image of AI agent architecture diagram]
+3. Running the App
 
-
-## 🛠️ Installation & Setup
-
-### Prerequisites
-- Python 3.9+
-- An Elastic Cloud account (or local Elasticsearch instance)
+Bash
+```
+streamlit run streamlit_app.py
+```

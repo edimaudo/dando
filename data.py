@@ -22,9 +22,15 @@ load_dotenv()
 
 # Elasticsearch and gemini info
 def get_es_client():
+    url = os.getenv("ELASTIC_URL")
+    api_key = os.getenv("ELASTIC_API_KEY")
+    
+    # Increase timeout to 60 seconds (default is usually 10)
     return Elasticsearch(
-        os.getenv("ELASTIC_URL"),
-        api_key=os.getenv("ELASTIC_API_KEY")
+        url,
+        api_key=api_key,
+        request_timeout=60, 
+        retry_on_timeout=True # Automatically try again once if it fails
     )
 
 def get_gemini_client():
@@ -301,7 +307,7 @@ AGENT_REGISTRY = {
 
 # 2. The single, clean function that powers everything
 def call_agent(agent_key, user_request, context_df):
-    es = get_es_client()
+    es = get_es_client().options(request_timeout=120)
     
     # Get the configuration for the chosen agent
     config = AGENT_REGISTRY.get(agent_key)
