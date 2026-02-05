@@ -69,13 +69,6 @@ with tab5:
         # Create a safe ID string for ES|QL (limiting to 1000 for performance)
         ids_for_query = ", ".join([f"'{str(i)}'" for i in relevant_ids[:1000]])
         
-        # Call this specific agent for the Segmentation tab
-        agent_response = call_elastic_agent(
-            inference_id="donor-segmentation-agent",
-            user_input="Who are the priority donors to contact this week?",
-            context_df=gift_segment_df
-)
-
         # 2. AGENT SELECTION
         agent_choice = st.radio(
             "Select Active Agent",
@@ -96,7 +89,7 @@ with tab5:
                     # 2. Call the specific Agent ID you built in Elastic
                     # Replace 'major-gift-agent-01' with your real ID
                     agent_insight = get_elastic_agent_response(
-                        inference_id="major-gift-agent-01", 
+                        inference_id="major-gift-agent", 
                         user_input="Who is the #1 priority for discovery?",
                         context_df=df
                     )

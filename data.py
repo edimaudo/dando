@@ -207,26 +207,31 @@ def forecast_donations(gifts_segment_df, horizon):
         'Forecasted Donations': forecast.values.round(1)
     })
 
+
 def get_elastic_agent_response(inference_id, user_input, context_df=None):
     """
     Calls an agent defined in the Elasticsearch Agent Builder.
-    Replace 'inference_id' with the ID from your Elastic Inference UI.
     """
     es = get_es_client()
     
-    # Format the context (e.g., your RFM data or ES|QL results) for the agent
-    context_str = context_df.to_json() if context_df is not None else ""
+    # 1. Prepare context (converts DataFrame to a readable string for the AI)
+    context_str = context_df.to_json() if context_df is not None else "No data provided."
     
-    # Construct the payload for the Elastic Inference API
-    # This assumes you have configured an 'inference' task in Elastic
+    # 2. Call the Inference API
+    # Note: 'chat_completion' is the standard task_type for Agents
     response = es.inference.inference(
         inference_id=inference_id,
-        task_type="chat", # or "completion" based on your agent setup
-        input=f"Context Data: {context_str}\n\nUser Question: {user_input}"
+        task_type="chat_completion", 
+        input=f"DATA CONTEXT: {context_str}\n\nUSER REQUEST: {user_input}"
     )
     
-    # Return the text from the model response
-    return response['completion'][0]['result'] # Path may vary by provider
+    # 3. Extract the result safely
+    # For Agent Builder, the response usually lives here:
+    try:
+        return response['completion'][0]['result']
+    except (KeyError, IndexError):
+        # Fallback for different provider response structures
+        return response.get('result', "Agent connected, but no text was returned.")
 
 def call_elastic_agent(inference_id, user_input, context_df):
     """
