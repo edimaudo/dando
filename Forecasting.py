@@ -47,17 +47,15 @@ with tab1:
 with tab2:
     st.subheader("Donation Amount Insights")
     st.write(f"This agent evaluates the sustainability of a {forecast_horizon_input}-month growth trend by querying record-level history in Elasticsearch.")
-    
-    # Call this specific agent for the Forecasting tab
-    agent_response = call_elastic_agent(
-        inference_id="donation-forecast-agent",
-        user_input=f"Analyze the outlook for the next {forecast_horizon_input} months.",
-        context_df=forecast_df
-)
 
     if st.button("Run Strategic Analysis"):
         with st.spinner("Accessing Elastic Agent..."):
-            es_query = f"FROM gift_transactions | ... | LIMIT {forecast_horizon_input}"
+            es_query = f"""
+                        FROM gift_transactions 
+                        | STATS SUM(AMOUNT) BY BUCKET(GIFT_DATE, 1 month) 
+                        | SORT GIFT_DATE DESC 
+                        | LIMIT {forecast_horizon_input}
+                        """
             raw_data = run_esql_to_dataframe(es_query)
             
             # Call the Forecast Agent

@@ -208,30 +208,42 @@ def forecast_donations(gifts_segment_df, horizon):
     })
 
 
-def get_elastic_agent_response(inference_id, user_input, context_df=None):
-    """
-    Calls an agent defined in the Elasticsearch Agent Builder.
-    """
-    es = get_es_client()
+# def get_elastic_agent_response(inference_id, user_input, context_df=None):
+#     """
+#     Calls an agent defined in the Elasticsearch Agent Builder.
+#     """
+#     es = get_es_client()
     
-    # 1. Prepare context (converts DataFrame to a readable string for the AI)
+#     # 1. Prepare context (converts DataFrame to a readable string for the AI)
+#     context_str = context_df.to_json() if context_df is not None else "No data provided."
+    
+#     # 2. Call the Inference API
+#     # Note: 'chat_completion' is the standard task_type for Agents
+#     response = es.inference.inference(
+#         inference_id=inference_id,
+#         task_type="chat_completion", 
+#         input=f"DATA CONTEXT: {context_str}\n\nUSER REQUEST: {user_input}"
+#     )
+    
+#     # 3. Extract the result safely
+#     # For Agent Builder, the response usually lives here:
+#     try:
+#         return response['completion'][0]['result']
+#     except (KeyError, IndexError):
+#         # Fallback for different provider response structures
+#         return response.get('result', "Agent connected, but no text was returned.")
+
+def get_elastic_agent_response(inference_id, user_input, context_df=None):
+    es = get_es_client()
     context_str = context_df.to_json() if context_df is not None else "No data provided."
     
-    # 2. Call the Inference API
-    # Note: 'chat_completion' is the standard task_type for Agents
+    # Using 'chat' matches the Agent Builder UI requirement
     response = es.inference.inference(
         inference_id=inference_id,
-        task_type="chat_completion", 
+        task_type="chat", 
         input=f"DATA CONTEXT: {context_str}\n\nUSER REQUEST: {user_input}"
     )
-    
-    # 3. Extract the result safely
-    # For Agent Builder, the response usually lives here:
-    try:
-        return response['completion'][0]['result']
-    except (KeyError, IndexError):
-        # Fallback for different provider response structures
-        return response.get('result', "Agent connected, but no text was returned.")
+    return response['completion'][0]['result']
 
 def call_elastic_agent(inference_id, user_input, context_df):
     """
