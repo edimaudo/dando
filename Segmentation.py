@@ -83,11 +83,12 @@ with tab5:
                     df = run_esql_to_dataframe(query)
                     
                     
-                    agent_insight = get_elastic_agent_response(
-                        inference_id="major-gift-agent", 
-                        user_input="Who is the #1 priority for discovery?",
-                        context_df=df
-                    )
+                    # agent_insight = get_elastic_agent_response(
+                    #     inference_id="major-gift-agent", 
+                    #     user_input="Who is the #1 priority for discovery?",
+                    #     context_df=df
+                    # )
+                    agent_insight = call_agent("major-gift-agent","Who is the #1 priority for discovery?",df)
                     st.info(f"**Agent Priority Strategy:** {agent_insight}")
 
         # --- AGENT 2: STEWARDSHIP VELOCITY ---
@@ -99,11 +100,13 @@ with tab5:
                     query = f"FROM gift_transactions | WHERE CONSTITUENT_ID IN ({ids_for_query}) | LIMIT 5"
                     df = run_esql_to_dataframe(query)
                     
-                    agent_insight = get_elastic_agent_response(
-                        inference_id="retention-risk-agent", 
-                        user_input="Analyze these donor patterns for risk.",
-                        context_df=df
-                    )
+                    # agent_insight = get_elastic_agent_response(
+                    #     inference_id="retention-risk-agent", 
+                    #     user_input="Analyze these donor patterns for risk.",
+                    #     context_df=df
+                    #)
+                    agent_insight = call_agent("retention-risk-agent","Analyze these donor patterns for risk.",df)
+
                     st.warning(f"**Retention Risk Analysis:** {agent_insight}")
 
         # --- AGENT 3: CAMPAIGN SIMULATOR ---

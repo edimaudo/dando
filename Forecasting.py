@@ -58,12 +58,13 @@ with tab2:
                         """
             raw_data = run_esql_to_dataframe(es_query)
             
-            # Call the Forecast Agent
-            agent_insight = get_elastic_agent_response(
-                inference_id="revenue-forecaster-agent",
-                user_input=f"Analyze the {forecast_horizon_input} month outlook.",
-                context_df=raw_data
-            )
+            # # Call the Forecast Agent
+            # agent_insight = get_elastic_agent_response(
+            #     inference_id="revenue-forecaster-agent",
+            #     user_input=f"Analyze the {forecast_horizon_input} month outlook.",
+            #     context_df=raw_data
+            # )
+            agent_insight = call_agent("revenue-forecaster-agent",f"Analyze the {forecast_horizon_input} month outlook",raw_data)
             
             st.info("Analysis retrieved.")
             st.markdown(f"### Strategic Outlook\n{agent_insight}")
