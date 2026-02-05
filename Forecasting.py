@@ -45,40 +45,39 @@ def get_cached_forecast(df, horizon):
 rfm_df = get_rfm_segments(gift, donor_segment_input)
 forecast_df = get_cached_forecast(get_processed_segment_data(donor_segment_input) , forecast_horizon_input)
 
-tab1, tab2 = st.tabs(['Donation Forecasting',"Donation Forecast Agent"])
-with tab1:
-    # plot forecast chart
+# --- 3. THE "STABLE" NAVIGATION ---
+# Replacing st.tabs with a keyed radio to prevent the "jump" behavior
+view_selection = st.radio(
+    "Navigation",
+    ["Donation Forecast", "Donation Modeling Agent"],
+    horizontal=True,
+    label_visibility="collapsed"
+)
+
+st.divider()
+
+# --- 4. VIEW LOGIC ---
+if view_selection == "Donation Forecast":
+    # Visualizations
     st.plotly_chart(create_forecast_chart(forecast_df))
-    # forecast chart table
     st.plotly_chart(create_forecast_table(forecast_df))
 
-with tab2:
-    st.subheader("Donation Amount Insights")
-    st.write(f"This agent evaluates the sustainability of a {forecast_horizon_input}-month growth trend")
-    # Use the callback 'on_click' to set the state
-    if st.button("Run Strategic Analysis", on_click=trigger_analysis):
-        pass
+elif view_selection == "Donation Modeling Agent":
+    st.subheader("CFO Strategic Outlook")
+    st.write(f"The Agent is analyzing the {forecast_horizon_input}-month projected trend.")
 
-# --- 3. PERSISTENT EXECUTION LOGIC ---
-    if st.session_state.forecasting_clicked:
-        with st.spinner("Accessing Elastic Agent..."):
-            es_query = f"""
-                        FROM gift_transactions 
-                        | STATS SUM(AMOUNT) BY BUCKET(GIFT_DATE, 1 month) 
-                        | SORT gift_date DESC 
-                        | LIMIT {forecast_horizon_input}
-                        """
+    # Execute Analysis
+    if st.button("Run Strategic Analysis"):
+        with st.spinner("Donation Modeling Agent is reviewing the forecast..."):
             try:
-                raw_data = run_esql_to_dataframe(es_query)
-                
                 agent_insight = call_agent(
-                    "revenue-forecaster-agent",
-                    f"Analyze the {forecast_horizon_input} month outlook",
-                    raw_data
+                    agent_key="revenue-forecaster-agent",
+                    user_request=f"Analyze this {forecast_horizon_input}-month forecast for growth patterns and risks.",
+                    context_df=forecast_df.tail(forecast_horizon_input)
                 )
                 
-                st.info("Analysis retrieved.")
-                st.markdown(f"### Strategic Outlook\n{agent_insight}")
+                st.success("Strategic Analysis Retrieved")
+                st.markdown(agent_insight)
                 
             except Exception as e:
-                st.error(f"Error during analysis: {e}")
+                st.error("Donation Modeling Agent is currently unavailable. Please try again.")

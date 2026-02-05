@@ -30,7 +30,8 @@ def get_es_client():
         url,
         api_key=api_key,
         request_timeout=60, 
-        retry_on_timeout=True # Automatically try again once if it fails
+        retry_on_timeout=True, # Forces a second attempt automatically
+        max_retries=3
     )
 
 def get_gemini_client():
