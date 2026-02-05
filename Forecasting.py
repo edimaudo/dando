@@ -46,7 +46,7 @@ with tab1:
 
 with tab2:
     st.subheader("Donation Amount Insights")
-    st.write(f"This agent evaluates the sustainability of a {forecast_horizon_input}-month growth trend by querying record-level history in Elasticsearch.")
+    st.write(f"This agent evaluates the sustainability of a {forecast_horizon_input}-month growth trend")
 
     if st.button("Run Strategic Analysis"):
         with st.spinner("Accessing Elastic Agent..."):
@@ -65,5 +65,5 @@ with tab2:
                 context_df=raw_data
             )
             
-            st.info("Analysis retrieved from Elastic Agent Builder.")
+            st.info("Analysis retrieved.")
             st.markdown(f"### Strategic Outlook\n{agent_insight}")

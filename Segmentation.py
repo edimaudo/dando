@@ -82,8 +82,7 @@ with tab5:
                     query = f"FROM constituent_profiles | WHERE CONSTITUENT_ID IN ({ids_for_query}) | LIMIT 10"
                     df = run_esql_to_dataframe(query)
                     
-                    # 2. Call the specific Agent ID you built in Elastic
-                    # Replace 'major-gift-agent-01' with your real ID
+                    
                     agent_insight = get_elastic_agent_response(
                         inference_id="major-gift-agent", 
                         user_input="Who is the #1 priority for discovery?",
@@ -113,9 +112,9 @@ with tab5:
             target_amount = st.number_input("Target Raise ($)", value=25000)
             if st.button("Simulate Campaign Impact"):
                 donor_count = len(relevant_ids)
-                avg_gift = gift_segment_df['AMOUNT'].mean()
+                amt_gift = gift_segment_df['AMOUNT'].sum()
                 
                 client = get_gemini_client()
-                prompt = f"We have {donor_count} donors in the {donor_segment_input} segments with an average gift of ${avg_gift:.2f}. Can we raise ${target_amount} with a 5% response rate?"
+                prompt = f"We have {donor_count} donors in the {donor_segment_input} segments with an average gift of ${amt_gift:.2f}. Can we raise ${target_amount} with a 5% response rate?"
                 response = client.models.generate_content(model="gemini-2.0-flash", contents=prompt)
                 st.success(f"**Simulation Result:** {response.text}")
