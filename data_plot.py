@@ -120,8 +120,8 @@ def plot_gift_crm(gift, crm):
 
 def crm_outreach_plot(crm, years, months):
     # 1. Create the filtered CRM dataframe (matching get_gift_df logic)
-    df = crm.copy()
-    df['CRM_INTERACTION_DATE'] = pd.to_datetime(df['CRM_INTERACTION_DATE'])
+    df = crm
+    #df['CRM_INTERACTION_DATE'] = pd.to_datetime(df['CRM_INTERACTION_DATE'])
     
     # Extract components to match your gift function
     df['Year'] = df['CRM_INTERACTION_DATE'].dt.year
@@ -171,7 +171,7 @@ def crm_outreach_plot(crm, years, months):
     return fig
 
 # Giving Level
-## Avg Gift Amount
+## Gift Amount
 def plot_gift_year(df):
     # Aggregation
     plot_df = df.groupby('Year')['AMOUNT'].sum().round(1).reset_index()
@@ -280,9 +280,8 @@ def plot_gift_time_period(df, period_col):
 
 # Online Performance
 def get_video_stats(video_df, years, months):
-    # Filter and setup (video_df reactive)
-    df = video_df.copy()
-    df['SENT_DATE'] = pd.to_datetime(df['SENT_DATE'])
+    df = video_df
+    #df['SENT_DATE'] = pd.to_datetime(df['SENT_DATE'])
     df['Year'] = df['SENT_DATE'].dt.year
     df['Month'] = df['SENT_DATE'].dt.month_name()
     
@@ -318,8 +317,6 @@ def plot_video_views(stats):
     return fig
 
 def plot_video_clicks(stats):
-    """Equivalent to output$clickPlot"""
-    # Note: Fixed to use Video_clicks on the y-axis
     fig = px.bar(stats, x='Year', y='Video_clicks', 
                  title="Video Clicks by Year",
                  labels={'Video_clicks': 'Clicks'})
@@ -334,7 +331,6 @@ def plot_video_clicks(stats):
 
 
 def plot_bounce_unsub_rate(stats):
-    """Equivalent to output$bounceUnsubPlot"""
     # Create figure with secondary y-axis
     fig = make_subplots(specs=[[{"secondary_y": True}]])
 
@@ -355,7 +351,7 @@ def plot_bounce_unsub_rate(stats):
     fig.update_layout(
         title_text="Bounce Rate vs Unsubscribe Rate by Year",
         xaxis_title="Year",
-        template='plotly_white',#template='minimal',
+        template='plotly_white',
         legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1,),
         title_font_size=20,
         title_x=0.5,
@@ -368,7 +364,6 @@ def plot_bounce_unsub_rate(stats):
     return fig
 
 def plot_rfm_treemap(rfm_df):
-    """Equivalent to output$rfmTreemap"""
     counts = rfm_df['segment'].value_counts().reset_index()
     counts.columns = ['Segment', 'Count']
     
@@ -409,7 +404,7 @@ def create_forecast_chart(forecast_df):
 
 def create_forecast_table(forecast_df):
     # Format the date for display
-    display_df = forecast_df.copy()
+    display_df = forecast_df
     display_df['Month'] = display_df['Month'].dt.strftime('%B %Y')
     display_df['Forecasted Donations'] = display_df['Forecasted Donations'].apply(lambda x: f"${x:,.2f}")
 

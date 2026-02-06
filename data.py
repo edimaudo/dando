@@ -99,10 +99,6 @@ def get_gift_segment_df(gift):
     
     return df
 
-
-
-
-
 # Customer Segmentation
 @st.cache_data
 def get_rfm_segments(gift_df, segments_input):
@@ -333,3 +329,34 @@ def call_agent(agent_key, user_request, context_df):
     )
     
     return response['completion'][0]['result']
+
+
+def call_forecast_agent(forecast_df, horizon, user_request):
+    es = get_es_client()
+    model_id = ".google-gemini-2.5-flash-completion" 
+
+    try:
+        # Get the latest 'horizon' months
+        data_slice = forecast_df.tail(horizon)
+        
+        # Use your actual column names: 'Month' and 'Forecasted Donations'
+        # We format the Month to be clean and the Donation to be a whole number
+        dates = data_slice['Month'].astype(str).tolist()
+        values = data_slice['Forecasted Donations'].round(0).astype(int).tolist()
+        
+        # Create a tiny, readable text string for the AI
+        data_summary = ", ".join([f"{d}: ${v}" for d, v in zip(dates, values)])
+
+        # Execute call with the server-side timeout override
+        response = es.inference.inference(
+            inference_id=model_id,
+            task_type="completion", 
+            input=f"Analyze these donation projections: {data_summary}. {user_request}",
+            timeout="60s" 
+        )
+        return response['completion'][0]['result']
+
+    except KeyError as e:
+        return f"Column Name Error: I was looking for 'Month' but found {forecast_df.columns.tolist()}"
+    except Exception as e:
+        return f"Forecast Agent Error: {str(e)}"

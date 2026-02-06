@@ -5,13 +5,6 @@ from data_plot import *
 st.title(APP_NAME)
 st.header(FORECASTING_HEADER)
 
-# --- 1. SESSION STATE INITIALIZATION ---
-# This ensures the button state persists across the "Tab Jump"
-if 'forecasting_clicked' not in st.session_state:
-    st.session_state.forecasting_clicked = False
-
-def trigger_analysis():
-    st.session_state.forecasting_clicked = True
 
 with st.sidebar:
     donor_segment_input = st.multiselect("Donor Segment", engagement_df['Donor Portfolio'],engagement_df['Donor Portfolio'])
@@ -70,14 +63,15 @@ elif view_selection == "Donation Modeling Agent":
     if st.button("Run Strategic Analysis"):
         with st.spinner("Donation Modeling Agent is reviewing the forecast..."):
             try:
-                agent_insight = call_agent(
-                    agent_key="revenue-forecaster-agent",
-                    user_request=f"Analyze this {forecast_horizon_input}-month forecast for growth patterns and risks.",
-                    context_df=forecast_df.tail(forecast_horizon_input)
-                )
+                agent_insight = call_forecast_agent(
+                forecast_df=forecast_df,
+                horizon=forecast_horizon_input,
+                user_request="Summarize the donation trend, see if the trend is sustainabile and could meet donation target."
+            )
                 
                 st.success("Strategic Analysis Retrieved")
                 st.markdown(agent_insight)
                 
             except Exception as e:
+                print(e)
                 st.error("Donation Modeling Agent is currently unavailable. Please try again.")
