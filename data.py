@@ -76,8 +76,7 @@ engagement_df = pd.DataFrame(engagement_data)
 
 # Gift Data setup
 def get_gift_df(gift, years, months):
-    df = gift #.copy()
-    #df['GIFT_DATE'] = pd.to_datetime(df['GIFT_DATE'])
+    df = gift 
     
     # Extract Year, Month, Day of Week
     df['Year'] = df['GIFT_DATE'].dt.year
@@ -89,8 +88,7 @@ def get_gift_df(gift, years, months):
     return df[mask]
 
 def get_gift_segment_df(gift):
-    df = gift #.copy()
-    #df['GIFT_DATE'] = pd.to_datetime(df['GIFT_DATE'])
+    df = gift 
     
     # Extract Year, Month, Day of Week
     df['Year'] = df['GIFT_DATE'].dt.year
@@ -102,8 +100,6 @@ def get_gift_segment_df(gift):
 # Customer Segmentation
 @st.cache_data
 def get_rfm_segments(gift_df, segments_input):
-    # 1. Ensure dates are datetime and apply 2015 filter
-    #gift_df['GIFT_DATE'] = pd.to_datetime(gift_df['GIFT_DATE'])
     gift_df = gift_df[gift_df['GIFT_DATE'] >= '2015-01-01'].copy()
     
     # 2. Raw RFM Calculation
@@ -178,8 +174,6 @@ def get_rfm_segments(gift_df, segments_input):
 
 
 def get_final_filtered_data(gift, rfm_output, segments_input):
-    # Ensure dates are datetime for the filter to work
-    #gift['GIFT_DATE'] = pd.to_datetime(gift['GIFT_DATE'])
     
     # Process the chain
     final_df = (
@@ -209,44 +203,6 @@ def forecast_donations(gifts_segment_df, horizon):
         'Month': forecast_dates,
         'Forecasted Donations': forecast.values.round(1)
     })
-
-
-# def get_elastic_agent_response(inference_id, user_input, context_df=None):
-#     """
-#     Calls an agent defined in the Elasticsearch Agent Builder.
-#     """
-#     es = get_es_client()
-    
-#     # 1. Prepare context (converts DataFrame to a readable string for the AI)
-#     context_str = context_df.to_json() if context_df is not None else "No data provided."
-    
-#     # 2. Call the Inference API
-#     # Note: 'chat_completion' is the standard task_type for Agents
-#     response = es.inference.inference(
-#         inference_id=inference_id,
-#         task_type="chat_completion", 
-#         input=f"DATA CONTEXT: {context_str}\n\nUSER REQUEST: {user_input}"
-#     )
-    
-#     # 3. Extract the result safely
-#     # For Agent Builder, the response usually lives here:
-#     try:
-#         return response['completion'][0]['result']
-#     except (KeyError, IndexError):
-#         # Fallback for different provider response structures
-#         return response.get('result', "Agent connected, but no text was returned.")
-
-# def get_elastic_agent_response(inference_id, user_input, context_df=None):
-#     es = get_es_client()
-#     context_str = context_df.to_json() if context_df is not None else "No data provided."
-    
-#     # Using 'chat' matches the Agent Builder UI requirement
-#     response = es.inference.inference(
-#         inference_id=inference_id,
-#         task_type="chat", 
-#         input=f"DATA CONTEXT: {context_str}\n\nUSER REQUEST: {user_input}"
-#     )
-#     return response['completion'][0]['result']
 
 def get_elastic_agent_response(inference_id, user_input, context_df=None):
     """
@@ -347,9 +303,7 @@ def call_forecast_agent(forecast_df, horizon, user_request):
     try:
         # Get the latest 'horizon' months
         data_slice = forecast_df.tail(horizon)
-        
-        # Use your actual column names: 'Month' and 'Forecasted Donations'
-        # We format the Month to be clean and the Donation to be a whole number
+    
         dates = data_slice['Month'].astype(str).tolist()
         values = data_slice['Forecasted Donations'].round(0).astype(int).tolist()
         

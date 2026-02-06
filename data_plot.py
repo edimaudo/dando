@@ -20,7 +20,6 @@ def plot_donor_growth(df):
     fig.update_layout(
 
         title={'font': {'size': 20}, 'x': 0.5, 'xanchor': 'center'},
-        #yaxis={'categoryorder':'total ascending', 'title': ''}, 
             title_font_size=20,
             template='plotly_white',
         title_x=0.5,
@@ -34,7 +33,6 @@ def plot_donor_growth(df):
 
 ## Donor Retention and Churn
 def get_donor_rates(df):
-    # Group by year and create sets of unique IDs
     yearly_donors = df.groupby('Year')['CONSTITUENT_ID'].apply(set).reset_index()
     yearly_donors['n_donors'] = yearly_donors['CONSTITUENT_ID'].apply(len)
     
@@ -50,10 +48,8 @@ def get_donor_rates(df):
     yearly_donors['retention_rate'] = (yearly_donors['retained'] / yearly_donors['prev_n'] * 100).round(1).fillna(0)
     yearly_donors['churn_rate'] = (100 - yearly_donors['retention_rate']).round(1)
     
-    #return yearly_donors[['Year', 'retention_rate', 'churn_rate']]
     rates_df = yearly_donors
     
-    # 2. Initialize the Plotly Figure
     fig = go.Figure()
 
     # 3. Add Retention Rate Trace (Solid Green)
@@ -119,9 +115,7 @@ def plot_gift_crm(gift, crm):
 
 
 def crm_outreach_plot(crm, years, months):
-    # 1. Create the filtered CRM dataframe (matching get_gift_df logic)
     df = crm
-    #df['CRM_INTERACTION_DATE'] = pd.to_datetime(df['CRM_INTERACTION_DATE'])
     
     # Extract components to match your gift function
     df['Year'] = df['CRM_INTERACTION_DATE'].dt.year
@@ -161,7 +155,6 @@ def crm_outreach_plot(crm, years, months):
     fig.update_layout(
         template='plotly_white',
         title_font_size=20,
-        #xaxis=dict(showticklabels=True, range=[0, stats['Percent'].max() * 1.2]),
         yaxis_title=None,
         title_x=0.5,
         margin=dict(l=20, r=50, t=60, b=40), 
@@ -173,7 +166,6 @@ def crm_outreach_plot(crm, years, months):
 # Giving Level
 ## Gift Amount
 def plot_gift_year(df):
-    # Aggregation
     plot_df = df.groupby('Year')['AMOUNT'].sum().round(1).reset_index()
     plot_df = plot_df.dropna()
 
@@ -199,7 +191,6 @@ def plot_gift_year(df):
 
 ## Gift Count by Year
 def plot_gift_year_count(df):
-    # Aggregation
     plot_df = df.groupby('Year').size().reset_index(name='Total')
     plot_df = plot_df.dropna()
 
@@ -220,9 +211,8 @@ def plot_gift_year_count(df):
 
     return fig
 
-## Gift Amouny Growth
+## Gift Amount Growth
 def plot_gift_year_growth(df):
-    # Aggregation and Growth Calculation
     stats = df.groupby('Year')['AMOUNT'].sum().sort_index()
     growth = stats.pct_change().fillna(0) * 100
     plot_df = growth.round(1).reset_index(name='AvgGiftGrowth')
@@ -257,7 +247,6 @@ def plot_gift_time_period(df, period_col):
         order = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
         title = "Donation Amount by Day of Week"
 
-    # Aggregation
     plot_df = df.groupby(period_col)['AMOUNT'].sum().round(1).reindex(order).reset_index()
     plot_df = plot_df.dropna()
 
@@ -281,7 +270,6 @@ def plot_gift_time_period(df, period_col):
 # Online Performance
 def get_video_stats(video_df, years, months):
     df = video_df
-    #df['SENT_DATE'] = pd.to_datetime(df['SENT_DATE'])
     df['Year'] = df['SENT_DATE'].dt.year
     df['Month'] = df['SENT_DATE'].dt.month_name()
     
