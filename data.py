@@ -298,7 +298,7 @@ AGENT_REGISTRY = {
     },
     "revenue-forecaster-agent": {
         "model": ".google-gemini-2.5-pro-completion",
-        "system_prompt": "You are a Nonprofit CFO and data scientist. Analyze the monthly donation revenue. Check for seasonal volatility and predict if we are on track for the annual goal. Use a professional, financial tone.",
+        "system_prompt": "You are a Nonprofit CFO and data scientist. Analyze the monthly donation revenue. Check for seasonal volatility and predict if we are on track for the annual goal. Use a professional, financial tone. FORMATTING: - Use '###' for section headers.- Use '**bold**' for key financial figures.- Use bullet points for recommendations.- Keep the summary under 500 words.",
     }
 }
 
