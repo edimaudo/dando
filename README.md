@@ -1,12 +1,15 @@
 # dando | A strategic donation intelligence multi-agent tool
 
 ## About
-dando is a strategic donor intelligence platform that transforms donation data into actionable fundraising strategies. It provides trend insights, donor segmenation, analysis of donation data, leveraging Elasticsearch ES|QL for data retrieval and Gemini for data insights which provides nonprofit leaders with a virtual team of specialist agents.
+dando is a strategic donor intelligence platform that transforms donation data into actionable fundraising strategies. It provides trend insights, donor segmenation of donation data It leverages Elasticsearch ES|QL for data retrieval and inference API for data insights reasoning.
 
-## Agentic Features
+## Agents
+### Donor Segmentation
 - **Major Gift Agent:** High-capacity prospect identification
 - **PRetention Agent:** Churn detection and "Win-back" plans
-- **Strategic CFO:** Revenue forecasting and fiscal health
+- **Campaign Simulator Agent:** Analyze campaign feasability
+### Forecasting
+- **Revenue Forecaster Agent:** Revenue forecasting validation
 
 ## Technical Stack
 - Frontend: Streamlit (Python)
