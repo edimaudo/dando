@@ -66,7 +66,7 @@ elif view_selection == "Donor Segment Agents":
         
         agent_choice = st.radio(
             "Select Active Agent",
-            ["Major Gift Pipeline", "Donor Relationship Health"],
+            ["Major Gift Pipeline", "Donor Relationship Health","Campaign Simulator"],
             horizontal=True
         )
         st.divider()
@@ -91,3 +91,32 @@ elif view_selection == "Donor Segment Agents":
                     df = run_esql_to_dataframe(query)
                     agent_insight = call_agent("retention-risk-agent", "Analyze these donor patterns for risk.", df)
                     st.warning(f"**Retention Risk Analysis:** {agent_insight}")
+        
+        # --- AGENT 3: CAMPAIGN SIMULATOR ---
+        elif agent_choice == "Campaign Simulator":
+            st.write("### Strategy Lab")
+            st.info("Simulate ROI based on your current filtered donor pool.")
+
+            # 1. Slider for Target Amount
+            target_amount = st.slider(
+                "Target Raise ($)", 
+                min_value=100000, 
+                max_value=1000000, 
+                value=250000, 
+                step=50000
+            )
+    
+            if st.button("Simulate Campaign Impact"):
+                donor_count = len(relevant_ids)
+                donation_amt  = gift_segment_df['AMOUNT'].sum() if not gift_segment_df.empty else 0
+                
+                with st.spinner("Running simulation models..."):
+                    simulation_insight = call_agent(
+                        agent_key="campaign-simulator-agent",
+                        user_request=f"Target: ${target_amount}. Segment: {donor_segment_input}. Context: {donor_count} donors, ${donation_amt:.2f} total donation amount.",
+                        context_df=None  # We pass the stats in the request to keep it fast
+                    )
+                    
+                    # Display result in a professional card
+                    st.subheader("Simulation Results")
+                    st.markdown(simulation_insight)

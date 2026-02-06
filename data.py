@@ -299,6 +299,15 @@ AGENT_REGISTRY = {
     "revenue-forecaster-agent": {
         "model": ".google-gemini-2.5-pro-completion",
         "system_prompt": "You are a Nonprofit CFO and data scientist. Analyze the monthly donation revenue. Check for seasonal volatility and predict if we are on track for the annual goal. Use a professional, financial tone. FORMATTING: - Use '###' for section headers.- Use '**bold**' for key financial figures.- Use bullet points for recommendations.- Keep the summary under 500 words.",
+    }, 
+    "campaign-simulator-agent": {
+        "model": ".google-gemini-2.5-flash-completion", # Or your specific ES Inference ID
+        "system_prompt": (
+            "You are a Donation retention/ROI Specialist and data scientist. Analyze campaign feasibility. "
+            "Calculate expected yield based on a 5 percent response rate vs the target. "
+            "Provide a 'Go/No-Go' recommendation and suggest 2 tactics to increase the total donation amount."
+            "The solution should be in a professional tone and under 200 words."
+        )
     }
 }
 
