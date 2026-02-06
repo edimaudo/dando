@@ -1,4 +1,4 @@
-# dando | A sdonation intelligence tool
+# dando | A donation intelligence tool
 
 ## About
 dando is a donor intelligence platform that transforms donation data into actionable fundraising strategies. It provides trend insights, donor segmenation of donation data It leverages Elasticsearch ES|QL for data retrieval and inference API for data insights reasoning.
