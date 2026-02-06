@@ -4,7 +4,6 @@ from utils import *
 @st.cache_data
 def load_data(DATA_URL):
     data = pd.read_csv(DATA_URL)
-    # Convert dates immediately upon loading to save downstream memory
     for col in ['GIFT_DATE', 'CRM_INTERACTION_DATE', 'SENT_DATE']:
         if col in data.columns:
             data[col] = pd.to_datetime(data[col])
@@ -20,7 +19,7 @@ month_list = ['January','February','March','April','May','June','July','August',
 
 load_dotenv() 
 
-# Elasticsearch and gemini info
+# Elasticsearch
 def get_es_client():
     url = os.getenv("ELASTIC_URL")
     api_key = os.getenv("ELASTIC_API_KEY")
@@ -33,9 +32,6 @@ def get_es_client():
         retry_on_timeout=True, # Forces a second attempt automatically
         max_retries=3
     )
-
-def get_gemini_client():
-    return genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
 
 @st.cache_data
 def run_esql_to_dataframe(query):
