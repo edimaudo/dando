@@ -9,7 +9,7 @@ dando is a donor intelligence platform that transforms donation data into action
 - **PRetention Agent:** Churn detection and "Win-back" plans
 - **Campaign Simulator Agent:** Analyze campaign feasability
 ### Forecasting
-- **Revenue Forecaster Agent:** Revenue forecasting validation
+- **Donation Forecaster Agent:** Donation forecasting analysis
 
 ## Technical Stack
 - Frontend: Streamlit (Python)

@@ -42,7 +42,7 @@ forecast_df = get_cached_forecast(get_processed_segment_data(donor_segment_input
 # Replacing st.tabs with a keyed radio to prevent the "jump" behavior
 view_selection = st.radio(
     "Navigation",
-    ["Donation Forecast", "Donation Modeling Agent"],
+    ["Donation Forecast", "Donation Forecaster Agent"],
     horizontal=True,
     label_visibility="collapsed"
 )
@@ -55,13 +55,13 @@ if view_selection == "Donation Forecast":
     st.plotly_chart(create_forecast_chart(forecast_df))
     st.plotly_chart(create_forecast_table(forecast_df))
 
-elif view_selection == "Donation Modeling Agent":
-    st.subheader("CFO Strategic Outlook")
+elif view_selection == "Donation Forecaster Agent":
+    st.subheader("Donation Outlook")
     st.write(f"The Agent is analyzing the {forecast_horizon_input}-month projected trend.")
 
     # Execute Analysis
-    if st.button("Run Strategic Analysis"):
-        with st.spinner("Donation Modeling Agent is reviewing the forecast..."):
+    if st.button("Run Donation Analysis"):
+        with st.spinner("Donation Forecaster Agent is reviewing the forecast..."):
             try:
                 agent_insight = call_forecast_agent(
                 forecast_df=forecast_df,
@@ -69,9 +69,9 @@ elif view_selection == "Donation Modeling Agent":
                 user_request="Summarize the donation trend, see if the trend is sustainabile and could meet donation target."
             )
                 
-                st.success("Strategic Analysis Retrieved")
+                st.success("Strategic Donation Analysis Retrieved")
                 st.markdown(agent_insight)
                 
             except Exception as e:
                 print(e)
-                st.error("Donation Modeling Agent is currently unavailable. Please try again.")
+                st.error("Donation Forecaster Agent is currently unavailable. Please try again.")
