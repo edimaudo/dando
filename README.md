@@ -6,7 +6,7 @@ dando is a donor intelligence platform that transforms donation data into action
 ## Agents
 ### Donor Segmentation
 - **Major Gift Agent:** High-capacity prospect identification
-- **PRetention Agent:** Churn detection and "Win-back" plans
+- **Retention Agent:** Churn detection and "Win-back" plans
 - **Campaign Simulator Agent:** Analyze campaign feasability
 ### Forecasting
 - **Donation Forecaster Agent:** Donation forecasting analysis
