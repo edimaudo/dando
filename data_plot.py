@@ -285,8 +285,8 @@ def get_video_stats(video_df, years, months):
         Video_clicks=('CLICKS', 'sum')
     ).reset_index()
     
-    stats['Bounce_Rate'] = (stats['Total_Bounced'] / stats['Total_Sent'] * 100).round(2)
-    stats['Unsub_Rate'] = (stats['Total_Unsub'] / stats['Total_Sent'] * 100).round(2)
+    stats['Bounce_Rate'] = ((stats['Total_Bounced'] / stats['Total_Sent']) * 100).round(2)
+    stats['Unsub_Rate'] = ((stats['Total_Unsub'] / stats['Total_Sent']) * 100).round(2)
     
     return stats
 
