@@ -1,6 +1,4 @@
-"""
-Libraries
-"""
+## Libraries
 import streamlit as st
 import pandas as pd
 import numpy as np
@@ -26,9 +24,7 @@ from elasticsearch import Elasticsearch
 from dotenv import load_dotenv, dotenv_values 
 
 
-"""
-App Information
-"""
+## App Information
 APP_NAME = 'Dando'
 ABOUT_HEADER = 'About'
 OVERVIEW_HEADER = 'Overview'
